@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Course Creator — TouchCast Project</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0eff5;color:#1a1a2e;min-height:100vh}
+header{background:#fff;border-bottom:1px solid #e0dff5;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(83,74,183,0.07)}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#534AB7,#7F77DD);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo h1{font-size:17px;font-weight:700;color:#1a1a2e}
+.logo p{font-size:12px;color:#888;margin-top:1px}
+.header-badge{background:#E1F5EE;color:#085041;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid #86efac}
+.hero{background:linear-gradient(135deg,#534AB7 0%,#7F77DD 100%);color:white;text-align:center;padding:52px 24px 44px}
+.hero h2{font-size:32px;font-weight:800;line-height:1.3;margin-bottom:14px}
+.hero p{font-size:16px;opacity:0.88;max-width:520px;margin:0 auto 24px;line-height:1.6}
+.hero-pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-pills span{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600}
+main{max-width:1200px;margin:32px auto;padding:0 20px}
+.container{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
+.panel{background:#fff;border-radius:18px;padding:24px;border:1px solid #e0dff5;display:flex;flex-direction:column;gap:18px;box-shadow:0 4px 20px rgba(83,74,183,0.06)}
+.panel-title{font-size:14px;font-weight:700;color:#534AB7;letter-spacing:0.03em}
+.field label{font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:7px}
+input[type=text],textarea,select{width:100%;font-size:13px;border:1px solid #e0dff5;border-radius:10px;padding:9px 12px;background:#fafafa;color:#1a1a2e;font-family:inherit;outline:none;transition:border-color 0.15s}
+input:focus,textarea:focus,select:focus{border-color:#7F77DD;box-shadow:0 0 0 3px rgba(127,119,221,0.12);background:#fff}
+textarea{height:140px;resize:vertical}
+.gen-btn{width:100%;padding:13px;font-size:15px;font-weight:700;border-radius:12px;background:linear-gradient(135deg,#534AB7,#7F77DD);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(83,74,183,0.3);transition:opacity 0.15s,transform 0.1s;margin-top:4px}
+.gen-btn:hover{opacity:0.92;transform:translateY(-1px)}
+.gen-btn:disabled{background:#ccc;box-shadow:none;cursor:not-allowed;transform:none}
+.output-panel{background:#fff;border-radius:18px;padding:28px;border:1px solid #e0dff5;min-height:540px;box-shadow:0 4px 20px rgba(83,74,183,0.06)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:420px;gap:10px;text-align:center;color:#aaa}
+.empty-icon{font-size:56px;margin-bottom:6px}
+.empty-state h3{font-size:18px;font-weight:700;color:#555}
+.steps{margin-top:20px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.step{display:flex;align-items:center;gap:10px;font-size:13px;color:#777}
+.step span{width:24px;height:24px;background:#EEEDFE;color:#534AB7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.shimmer-wrap{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.shimmer{height:14px;border-radius:8px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.success-bar{background:#f0fff4;border:1px solid #86efac;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#166534;margin-bottom:20px}
+.course-header{margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #f0effe}
+.course-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.course-tag{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
+.tag-purple{background:#EEEDFE;color:#3C3489}
+.tag-green{background:#E1F5EE;color:#085041}
+.tag-blue{background:#E6F1FB;color:#0C447C}
+.course-title-main{font-size:26px;font-weight:800;color:#1a1a2e;line-height:1.3;margin-bottom:8px}
+.course-desc{font-size:14px;color:#666;line-height:1.7}
+.course-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.action-btn{padding:9px 18px;font-size:13px;font-weight:600;border-radius:10px;cursor:pointer;border:none;transition:all 0.15s}
+.btn-quiz{background:#534AB7;color:#fff;box-shadow:0 3px 10px rgba(83,74,183,0.25)}
+.btn-quiz:hover{background:#3C3489}
+.btn-pdf{background:#dc2626;color:#fff;box-shadow:0 3px 10px rgba(220,38,38,0.25)}
+.btn-pdf:hover{background:#b91c1c}
+.btn-copy{background:#f0effe;color:#534AB7;border:1px solid #AFA9EC}
+.btn-copy:hover{background:#EEEDFE}
+.progress-wrap{margin-bottom:24px}
+.progress-label{font-size:12px;font-weight:600;color:#888;margin-bottom:8px;display:flex;justify-content:space-between}
+.progress-bar{height:6px;background:#f0effe;border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#534AB7,#7F77DD);border-radius:10px;transition:width 0.3s}
+.chapters-title{font-size:14px;font-weight:700;color:#534AB7;margin-bottom:14px}
+.chapter-card{border:1px solid #e0dff5;border-radius:14px;margin-bottom:14px;overflow:hidden}
+.chapter-header{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;background:#fafafa;border-bottom:1px solid #f0effe;user-select:none}
+.chapter-num{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#7F77DD);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chapter-name{font-size:15px;font-weight:600;color:#1a1a2e;flex:1}
+.chapter-toggle{font-size:13px;color:#aaa;transition:transform 0.2s}
+.chapter-toggle.open{transform:rotate(180deg)}
+.chapter-body{padding:18px 20px;display:none}
+.chapter-body.open{display:block}
+.chapter-explanation{font-size:14px;line-height:1.85;color:#333;margin-bottom:16px}
+.key-concepts-title{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px}
+.concept-list{display:flex;flex-direction:column;gap:8px}
+.concept-item{display:flex;gap:10px;align-items:flex-start;background:#f8f8ff;border:1px solid #e8e7fa;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.6;color:#1a1a2e}
+.concept-dot{width:7px;height:7px;border-radius:50%;background:#534AB7;flex-shrink:0;margin-top:6px}
+.chapter-complete-btn{margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;background:#E1F5EE;color:#085041}
+.chapter-complete-btn.done{background:#166534;color:#fff}
+.summary-section{margin-top:24px;padding:20px;background:linear-gradient(135deg,#fafafe,#f0effe);border:1px solid #e0dff5;border-radius:14px}
+.summary-title{font-size:14px;font-weight:700;color:#534AB7;margin-bottom:12px}
+.summary-text{font-size:14px;line-height:1.85;color:#333}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #f0effe;position:sticky;top:0;background:#fff;z-index:1}
+.modal-header h2{font-size:18px;font-weight:700;color:#1a1a2e}
+.close-btn{width:32px;height:32px;border-radius:50%;border:none;background:#f0effe;color:#534AB7;font-size:14px;cursor:pointer;font-weight:700}
+.quiz-question{padding:20px 24px;border-bottom:1px solid #f5f5f5}
+.q-num{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:8px}
+.q-text{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:14px;line-height:1.5}
+.q-options{display:flex;flex-direction:column;gap:8px}
+.q-option{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #e0dff5;cursor:pointer;font-size:14px;color:#333;transition:all 0.15s;background:#fafafa}
+.q-option:hover{border-color:#7F77DD;background:#f0effe}
+.q-option.selected{border-color:#534AB7;background:#EEEDFE;color:#3C3489;font-weight:600}
+.q-option.correct{border-color:#16a34a;background:#f0fff4;color:#166534;font-weight:600}
+.q-option.wrong{border-color:#dc2626;background:#fff0f0;color:#991b1b}
+.option-circle{width:20px;height:20px;border-radius:50%;border:2px solid #d0d0d0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.q-option.selected .option-circle{border-color:#534AB7;background:#534AB7;color:#fff}
+.quiz-actions{padding:16px 24px;border-top:1px solid #f0effe}
+.submit-btn{width:100%;padding:13px;font-size:15px;font-weight:700;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#534AB7,#7F77DD);color:#fff}
+.quiz-result-box{padding:24px;text-align:center}
+.score-circle{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#7F77DD);color:#fff;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.score-msg{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.score-sub{font-size:14px;color:#777;margin-bottom:20px}
+.retry-btn{padding:10px 24px;font-size:14px;font-weight:600;border-radius:10px;border:none;cursor:pointer;background:#EEEDFE;color:#534AB7}
+footer{text-align:center;padding:24px;font-size:13px;color:#aaa;border-top:1px solid #e0dff5;margin-top:40px;background:#fff}
+@media(max-width:768px){.container{grid-template-columns:1fr}.hero h2{font-size:24px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <h1>AI Course Creator</h1>
+        <p>Inspired by TouchCast Learning & Development</p>
+      </div>
+    </div>
+    <div class="header-badge">✨ No API Key Needed</div>
+  </div>
+</header>
+
+<section class="hero">
+  <h2>Turn Your Notes Into a<br/>Full Learning Course with AI</h2>
+  <p>Paste your notes or a topic — get structured chapters, key concepts, a quiz, and download as PDF!</p>
+  <div class="hero-pills">
+    <span>📚 Auto Chapters</span>
+    <span>💡 Key Concepts</span>
+    <span>❓ Smart Quiz</span>
+    <span>📄 Download PDF</span>
+  </div>
+</section>
+
+<main>
+  <div class="container">
+    <div class="panel">
+      <h3 class="panel-title">⚙️ Course Settings</h3>
+      <div class="field">
+        <label>Course Title (optional)</label>
+        <input type="text" id="courseTitle" placeholder="e.g. Introduction to Machine Learning"/>
+      </div>
+      <div class="field">
+        <label>Paste Your Notes or Topic</label>
+        <textarea id="notesInput" placeholder="Paste your notes here OR type a topic like 'Photosynthesis', 'Machine Learning', 'World War 2'..."></textarea>
+      </div>
+      <div class="field">
+        <label>Difficulty Level</label>
+        <select id="difficultySelect">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate" selected>Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Number of Chapters</label>
+        <select id="chaptersSelect">
+          <option value="3">3 Chapters</option>
+          <option value="4" selected>4 Chapters</option>
+          <option value="5">5 Chapters</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Quiz Questions</label>
+        <select id="quizSelect">
+          <option value="3">3 Questions</option>
+          <option value="5" selected>5 Questions</option>
+          <option value="7">7 Questions</option>
+        </select>
+      </div>
+      <button class="gen-btn" id="genBtn" onclick="generateCourse()">🚀 Generate My Course</button>
+    </div>
+
+    <div class="output-panel">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🎓</div>
+        <h3>Your course will appear here</h3>
+        <p>Enter your notes and click Generate</p>
+        <div class="steps">
+          <div class="step"><span>1</span> Type a topic or paste your notes</div>
+          <div class="step"><span>2</span> Choose difficulty and settings</div>
+          <div class="step"><span>3</span> Click Generate — get course + PDF!</div>
+        </div>
+      </div>
+      <div id="courseOutput" style="display:none"></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="quizModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📝 Course Quiz</h2>
+      <button class="close-btn" onclick="closeQuiz()">✕</button>
+    </div>
+    <div id="quizContent"></div>
+    <div class="quiz-actions" id="quizActions" style="display:none">
+      <button class="submit-btn" onclick="submitQuiz()">Submit Answers</button>
+    </div>
+    <div id="quizResult" style="display:none"></div>
+  </div>
+</div>
+
+<footer>
+  <p>Built for TouchCast Placement Drive &nbsp;·&nbsp; No API Key Needed &nbsp;·&nbsp; Inspired by TouchCast L&D Platform</p>
+</footer>
+
+<script>
+let courseData=null,completedChapters=new Set(),quizAnswers={},quizData=[];
+
+// ===== COURSE TEMPLATES =====
+const courseTemplates = {
+  default: {
+    getChapters: function(topic, n) {
+      const chapters = [
+        { title: `Introduction to ${topic}`, explanation: `${topic} is a fascinating subject that has shaped our understanding of the world. In this opening chapter, we explore the foundational concepts and why ${topic} matters in today's context. Understanding ${topic} helps us make better decisions and think more critically about the world around us. This chapter sets the stage for deeper exploration in the chapters that follow.`, keyConcepts: [`What is ${topic}`, `Why ${topic} is important`, `History and background of ${topic}`, `Key terminology used in ${topic}`] },
+        { title: `Core Principles of ${topic}`, explanation: `Every subject has a set of core principles that define how it works. In ${topic}, these principles form the backbone of everything we study. This chapter dives deep into the fundamental rules and frameworks that govern ${topic}. By mastering these principles, you will be able to understand more advanced topics with ease and confidence.`, keyConcepts: [`Fundamental rules of ${topic}`, `Key frameworks and models`, `How principles apply in real life`, `Common misconceptions about ${topic}`] },
+        { title: `Applications of ${topic}`, explanation: `The real power of ${topic} lies in how it can be applied to solve real-world problems. In this chapter, we explore various practical applications across different industries and fields. From everyday situations to complex professional scenarios, ${topic} plays a vital role. Understanding these applications will help you connect theory to practice effectively.`, keyConcepts: [`Real-world use cases`, `Industry applications`, `Problem-solving with ${topic}`, `Case studies and examples`] },
+        { title: `Advanced Concepts in ${topic}`, explanation: `Now that you have a strong foundation, we explore the more advanced dimensions of ${topic}. This chapter covers nuanced ideas, emerging trends, and cutting-edge developments. Advanced knowledge of ${topic} opens new opportunities for innovation and deeper understanding. This is where your learning truly accelerates and your expertise begins to stand out.`, keyConcepts: [`Advanced theories`, `Emerging trends in ${topic}`, `Research and innovations`, `Future of ${topic}`] },
+        { title: `Mastering ${topic} — Next Steps`, explanation: `Congratulations on reaching the final chapter! Here we review key takeaways from all previous chapters and discuss how to continue growing your knowledge of ${topic}. Mastery is a journey, not a destination. This chapter gives you a roadmap for continued learning, practice, and application of everything you have learned so far.`, keyConcepts: [`Summary of key learnings`, `Tips for continued growth`, `Resources for further study`, `Building expertise in ${topic}`] }
+      ];
+      return chapters.slice(0, n);
+    },
+    getQuiz: function(topic, n) {
+      const questions = [
+        { question: `Which of the following best describes ${topic}?`, options: [`A complex system with no real-world use`, `A well-defined field with practical applications`, `A theory that has been disproven`, `A topic only relevant to experts`], answer: 1 },
+        { question: `What is the most important reason to study ${topic}?`, options: [`It is required for every job`, `It has no practical value`, `It helps solve real-world problems`, `It is only useful in academics`], answer: 2 },
+        { question: `Which chapter covered the core principles of ${topic}?`, options: [`Chapter 1`, `Chapter 2`, `Chapter 4`, `Chapter 5`], answer: 1 },
+        { question: `Real-world applications of ${topic} are discussed in which chapter?`, options: [`Chapter 1`, `Chapter 2`, `Chapter 3`, `Chapter 5`], answer: 2 },
+        { question: `What does mastery of ${topic} require?`, options: [`Reading one book`, `Continuous learning and practice`, `Memorizing definitions`, `Avoiding advanced topics`], answer: 1 },
+        { question: `Which of the following is a key concept in ${topic}?`, options: [`Ignoring foundational principles`, `Understanding core frameworks`, `Avoiding real-world applications`, `Skipping advanced concepts`], answer: 1 },
+        { question: `What is the best approach to learning ${topic}?`, options: [`Jump straight to advanced topics`, `Start with basics and build up gradually`, `Memorize without understanding`, `Avoid practicing applications`], answer: 1 }
+      ];
+      return questions.slice(0, n);
+    }
+  }
+};
+
+function generateCourse() {
+  const notes = document.getElementById('notesInput').value.trim();
+  const customTitle = document.getElementById('courseTitle').value.trim();
+  const difficulty = document.getElementById('difficultySelect').value;
+  const chaptersCount = parseInt(document.getElementById('chaptersSelect').value);
+  const quizCount = parseInt(document.getElementById('quizSelect').value);
+
+  if (!notes) { alert('Please enter your notes or a topic!'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.textContent = '⏳ Generating your course...';
+  showLoading();
+
+  setTimeout(function() {
+    try {
+      // Extract topic from input
+      const topic = customTitle || extractTopic(notes);
+      const template = courseTemplates.default;
+      const chapters = template.getChapters(topic, chaptersCount);
+      const quiz = template.getQuiz(topic, quizCount);
+
+      // If user pasted real notes, enrich chapters with their content
+      if (notes.length > 80) {
+        const sentences = notes.replace(/\n/g,' ').split(/[.!?]+/).filter(s => s.trim().length > 20);
+        chapters.forEach(function(ch, i) {
+          if (sentences[i * 2]) {
+            ch.explanation = sentences.slice(i * 2, i * 2 + 3).join('. ').trim() + '. ' + ch.explanation;
+          }
+        });
+      }
+
+      courseData = {
+        title: topic,
+        description: `A comprehensive ${difficulty} level course on ${topic}. This course covers everything from the basics to advanced concepts, with practical examples and a quiz to test your understanding.`,
+        difficulty: difficulty,
+        chapters: chapters,
+        summary: `This course provided a complete overview of ${topic} across ${chaptersCount} structured chapters. You explored the core principles, real-world applications, and advanced concepts. Continue practicing and applying what you have learned to build true expertise in ${topic}.`,
+        quiz: quiz
+      };
+
+      quizData = courseData.quiz;
+      completedChapters = new Set();
+      quizAnswers = {};
+      renderCourse(courseData);
+    } catch(e) {
+      document.getElementById('courseOutput').innerHTML = '<div style="color:red;padding:20px">Something went wrong. Please try again.</div>';
+    }
+    btn.disabled = false; btn.textContent = '🚀 Generate My Course';
+  }, 1800);
+}
+
+function extractTopic(text) {
+  if (text.length < 60) return capitalizeFirst(text.trim());
+  const words = text.trim().split(/\s+/).slice(0, 5).join(' ');
+  return capitalizeFirst(words);
+}
+
+function capitalizeFirst(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function showLoading() {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('courseOutput').style.display = 'block';
+  document.getElementById('courseOutput').innerHTML = `<div class="shimmer-wrap">
+    <div class="shimmer" style="width:40%"></div><div class="shimmer" style="width:70%"></div>
+    <div class="shimmer" style="width:55%"></div><div style="height:8px"></div>
+    <div class="shimmer" style="width:90%"></div><div class="shimmer" style="width:80%"></div>
+    <div class="shimmer" style="width:85%"></div><div style="height:8px"></div>
+    <div class="shimmer" style="width:60%"></div><div class="shimmer" style="width:75%"></div>
+    <div class="shimmer" style="width:90%"></div></div>`;
+}
+
+function renderCourse(data) {
+  const total = data.chapters.length;
+  const chaptersHTML = data.chapters.map(function(ch, i) {
+    return `<div class="chapter-card">
+      <div class="chapter-header" onclick="toggleChapter(${i})">
+        <div class="chapter-num">${i+1}</div>
+        <div class="chapter-name">${ch.title}</div>
+        <div class="chapter-toggle" id="toggle-${i}">▼</div>
+      </div>
+      <div class="chapter-body" id="chapter-body-${i}">
+        <div class="chapter-explanation">${ch.explanation}</div>
+        <div class="key-concepts-title">🔑 Key Concepts</div>
+        <div class="concept-list">
+          ${ch.keyConcepts.map(function(c){return `<div class="concept-item"><div class="concept-dot"></div><span>${c}</span></div>`;}).join('')}
+        </div>
+        <button class="chapter-complete-btn" id="complete-btn-${i}" onclick="markComplete(${i})">✅ Mark as Complete</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('courseOutput').innerHTML = `
+    <div class="success-bar">✅ Course generated successfully! ${total} chapters ready.</div>
+    <div class="course-header">
+      <div class="course-meta">
+        <span class="course-tag tag-purple">🎓 ${total} Chapters</span>
+        <span class="course-tag tag-green">📊 ${data.difficulty}</span>
+        <span class="course-tag tag-blue">❓ ${quizData.length} Quiz Questions</span>
+      </div>
+      <div class="course-title-main">${data.title}</div>
+      <div class="course-desc">${data.description}</div>
+      <div class="course-actions">
+        <button class="action-btn btn-quiz" onclick="openQuiz()">📝 Take Quiz</button>
+        <button class="action-btn btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+        <button class="action-btn btn-copy" onclick="copyCourse()">📋 Copy Text</button>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Your Progress</span><span id="progress-text">0 / ${total} chapters</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapters-title">📚 Course Chapters</div>
+    ${chaptersHTML}
+    <div class="summary-section">
+      <div class="summary-title">📌 Course Summary</div>
+      <div class="summary-text">${data.summary}</div>
+    </div>`;
+}
+
+function toggleChapter(i) {
+  document.getElementById('chapter-body-'+i).classList.toggle('open');
+  document.getElementById('toggle-'+i).classList.toggle('open');
+}
+
+function markComplete(i) {
+  completedChapters.add(i);
+  var btn = document.getElementById('complete-btn-'+i);
+  btn.textContent = '✅ Completed!'; btn.classList.add('done'); btn.disabled = true;
+  var pct = Math.round((completedChapters.size / courseData.chapters.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = completedChapters.size + ' / ' + courseData.chapters.length + ' chapters';
+}
+
+function downloadPDF() {
+  if (!courseData) return;
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({unit:'mm', format:'a4'});
+  var pageW=210, pageH=297, margin=18, contentW=174;
+  var y = 0;
+
+  function checkPage(h) { if (y+h > pageH-20) { doc.addPage(); y=20; } }
+  function addText(text, x, maxW, lh, fs, color, bold) {
+    doc.setFontSize(fs); doc.setTextColor(color[0],color[1],color[2]);
+    doc.setFont('helvetica', bold?'bold':'normal');
+    var lines = doc.splitTextToSize(String(text), maxW);
+    lines.forEach(function(line){ checkPage(lh); doc.text(line, x, y); y+=lh; });
+  }
+
+  // Cover
+  doc.setFillColor(83,74,183); doc.rect(0,0,pageW,75,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(200,196,255);
+  doc.text('AI COURSE CREATOR  ·  TOUCHCAST PLACEMENT PROJECT', margin, 20);
+  doc.setFontSize(20); doc.setTextColor(255,255,255);
+  var tLines = doc.splitTextToSize(courseData.title, contentW);
+  var ty=34; tLines.forEach(function(l){doc.text(l,margin,ty);ty+=9;});
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(200,196,255);
+  doc.text('Difficulty: '+courseData.difficulty+'   Chapters: '+courseData.chapters.length+'   Quiz: '+quizData.length+' questions', margin, ty+3);
+  y=90;
+
+  // Description box
+  doc.setFillColor(240,238,254); doc.roundedRect(margin,y,contentW,20,3,3,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,52,137);
+  var dLines = doc.splitTextToSize(courseData.description, contentW-8);
+  dLines.forEach(function(l,i){doc.text(l, margin+4, y+8+i*5.5);});
+  y += 28;
+
+  // Chapters
+  courseData.chapters.forEach(function(ch, i) {
+    checkPage(28);
+    doc.setFillColor(83,74,183); doc.roundedRect(margin,y,contentW,11,2,2,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
+    doc.text('Chapter '+(i+1)+': '+ch.title, margin+4, y+7.5); y+=16;
+    addText(ch.explanation, margin, contentW, 5.5, 10, [50,50,70], false); y+=3;
+    checkPage(10);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(83,74,183);
+    doc.text('KEY CONCEPTS', margin, y); y+=6;
+    ch.keyConcepts.forEach(function(c){
+      checkPage(8);
+      doc.setFillColor(248,248,255); doc.roundedRect(margin,y-4,contentW,7,1,1,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(40,40,60);
+      doc.text('•  '+c, margin+4, y+1); y+=8;
+    }); y+=6;
+  });
+
+  // Summary
+  checkPage(28);
+  doc.setFillColor(240,238,254); doc.roundedRect(margin,y,contentW,8,2,2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(83,74,183);
+  doc.text('Course Summary', margin+4, y+5.5); y+=14;
+  addText(courseData.summary, margin, contentW, 5.5, 10, [50,50,70], false); y+=8;
+
+  // Quiz
+  if (quizData.length > 0) {
+    checkPage(18);
+    doc.setFillColor(83,74,183); doc.rect(0,y-2,pageW,13,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(255,255,255);
+    doc.text('Quiz Questions', margin, y+7); y+=18;
+    quizData.forEach(function(q,qi){
+      checkPage(38);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(40,40,60);
+      var qLines = doc.splitTextToSize('Q'+(qi+1)+'. '+q.question, contentW);
+      qLines.forEach(function(l){doc.text(l,margin,y);y+=5.5;}); y+=2;
+      q.options.forEach(function(opt,oi){
+        checkPage(8);
+        var isCorrect = oi===q.answer;
+        if(isCorrect){doc.setFillColor(225,245,238);doc.roundedRect(margin,y-4,contentW,7,1,1,'F');doc.setTextColor(8,80,65);doc.setFont('helvetica','bold');}
+        else{doc.setTextColor(80,80,100);doc.setFont('helvetica','normal');}
+        doc.setFontSize(10);
+        doc.text('  '+String.fromCharCode(65+oi)+'. '+opt+(isCorrect?' ✓':''), margin+3, y); y+=7;
+      }); y+=5;
+    });
+  }
+
+  // Footer
+  var totalPages = doc.getNumberOfPages();
+  for(var p=1;p<=totalPages;p++){
+    doc.setPage(p);
+    doc.setFillColor(83,74,183); doc.rect(0,pageH-10,pageW,10,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(200,196,255);
+    doc.text('AI Course Creator  ·  TouchCast Placement Project', margin, pageH-4);
+    doc.text('Page '+p+' of '+totalPages, pageW-margin-18, pageH-4);
+  }
+
+  var name = (courseData.title||'course').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  doc.save(name+'.pdf');
+}
+
+function openQuiz() {
+  if(!quizData.length){alert('No quiz available.');return;}
+  quizAnswers={};
+  document.getElementById('quizResult').style.display='none';
+  document.getElementById('quizActions').style.display='block';
+  document.getElementById('quizContent').innerHTML = quizData.map(function(q,qi){
+    return '<div class="quiz-question"><div class="q-num">Question '+(qi+1)+' of '+quizData.length+'</div><div class="q-text">'+q.question+'</div><div class="q-options">'+
+      q.options.map(function(opt,oi){return '<div class="q-option" id="opt-'+qi+'-'+oi+'" onclick="selectOption('+qi+','+oi+')"><div class="option-circle">'+String.fromCharCode(65+oi)+'</div><span>'+opt+'</span></div>';}).join('')+
+    '</div></div>';
+  }).join('');
+  document.getElementById('quizModal').style.display='flex';
+}
+
+function selectOption(qi,oi){
+  quizData[qi].options.forEach(function(_,idx){
+    var el=document.getElementById('opt-'+qi+'-'+idx);
+    el.classList.remove('selected');
+    el.querySelector('.option-circle').textContent=String.fromCharCode(65+idx);
+  });
+  quizAnswers[qi]=oi;
+  var el=document.getElementById('opt-'+qi+'-'+oi);
+  el.classList.add('selected'); el.querySelector('.option-circle').textContent='✓';
+}
+
+function submitQuiz(){
+  if(Object.keys(quizAnswers).length<quizData.length){alert('Please answer all questions!');return;}
+  var score=0;
+  quizData.forEach(function(q,qi){
+    var sel=quizAnswers[qi],cor=q.answer;
+    q.options.forEach(function(_,oi){
+      var el=document.getElementById('opt-'+qi+'-'+oi);
+      el.style.pointerEvents='none';
+      if(oi===cor)el.classList.add('correct');
+      else if(oi===sel&&sel!==cor)el.classList.add('wrong');
+    });
+    if(sel===cor)score++;
+  });
+  var pct=Math.round((score/quizData.length)*100);
+  var msg,emoji;
+  if(pct>=80){msg='Excellent work! 🎉';emoji='🏆';}
+  else if(pct>=60){msg='Good job! Keep it up!';emoji='👍';}
+  else{msg='Keep studying — you can do it!';emoji='📖';}
+  document.getElementById('quizActions').style.display='none';
+  document.getElementById('quizResult').style.display='block';
+  document.getElementById('quizResult').innerHTML='<div class="quiz-result-box"><div class="score-circle">'+emoji+'</div><div class="score-msg">'+score+' / '+quizData.length+' Correct — '+pct+'%</div><div class="score-sub">'+msg+'</div><button class="retry-btn" onclick="openQuiz()">🔄 Retry Quiz</button></div>';
+}
+
+function closeQuiz(){document.getElementById('quizModal').style.display='none';}
+
+function copyCourse(){
+  if(!courseData)return;
+  var text=courseData.title+'\n'+courseData.description+'\n\n';
+  courseData.chapters.forEach(function(ch,i){
+    text+='Chapter '+(i+1)+': '+ch.title+'\n'+ch.explanation+'\n\nKey Concepts:\n';
+    ch.keyConcepts.forEach(function(c){text+='• '+c+'\n';});text+='\n';
+  });
+  text+='Summary:\n'+courseData.summary;
+  navigator.clipboard.writeText(text).then(function(){alert('Copied to clipboard!');});
+}
+
+document.getElementById('quizModal').addEventListener('click',function(e){if(e.target===this)closeQuiz();});
+</script>
+</body>
+</html>
